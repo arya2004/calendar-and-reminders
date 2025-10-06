@@ -41,7 +41,6 @@ void AddNote(void) {
     flush_line();  /* consume end-of-line after the date */
 
     printf("Enter the Note (max 49 chars): ");
-    /* Read up to 49 non-newline characters, skip leading newline/space */
     if (scanf(" %49[^\n]", r.note) != 1) {
         puts("Failed to read note.");
         fclose(fp);
@@ -91,7 +90,8 @@ void DeleteNote(void) {
         return;
     }
 
-    int d, m, y, found = 0;
+    int d, m, y;
+    int found = 0;
     struct Remainder r;
 
     printf("Enter date of note to delete (DD MM YYYY): ");
@@ -104,10 +104,11 @@ void DeleteNote(void) {
         return;
     }
 
+    // Loop through all notes and delete any that match the date
     while (fread(&r, sizeof r, 1, fp) == 1) {
-        if (!found && r.dd == d && r.mm == m && r.yy == y) {
-            found = 1;              /* delete first match */
-            continue;
+        if (r.dd == d && r.mm == m && r.yy == y) {
+            found = 1;
+            continue;  
         }
         fwrite(&r, sizeof r, 1, ft);
     }
@@ -126,5 +127,5 @@ void DeleteNote(void) {
         return;
     }
 
-    printf("Note for %02d/%02d/%d deleted successfully.\n", d, m, y);
+    printf("All notes for %02d/%02d/%d deleted successfully.\n", d, m, y);
 }
