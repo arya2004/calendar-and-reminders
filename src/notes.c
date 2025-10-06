@@ -38,7 +38,13 @@ void AddNote(void) {
         flush_line();
         return;
     }
-    flush_line();  /* consume end-of-line after the date */
+    flush_line();
+
+    if (r.mm < 1 || r.mm > 12 || r.dd < 1 || r.dd > days_in_month(r.mm, r.yy)) {
+        puts("Invalid day or month for the given year.");
+        fclose(fp);
+        return;
+    }
 
     printf("Enter the Note (max 49 chars): ");
     if (scanf(" %49[^\n]", r.note) != 1) {
@@ -103,6 +109,7 @@ void DeleteNote(void) {
         flush_line();
         return;
     }
+
     while (fread(&r, sizeof r, 1, fp) == 1) {
         if (r.dd == d && r.mm == m && r.yy == y) {
             found = 1;
