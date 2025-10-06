@@ -2,41 +2,52 @@
 #include "calendar.h"
 #include "notes.h"
 
-int main() {
-    int choice;
-    int year, month, mm, yy;
+/* robust integer input */
+static int read_int(const char *prompt) {
+    int x, ch;
+    for (;;) {
+        if (prompt && *prompt) printf("%s", prompt);
+        if (scanf("%d", &x) == 1) { while ((ch=getchar())!='\n' && ch!=EOF){} return x; }
+        printf("Invalid input! Try again.\n");
+        while ((ch=getchar())!='\n' && ch!=EOF) {}
+    }
+}
 
-    while (1) {
-        printf("\n0. EXIT\n1. Print the calendar\n2. Add Reminder\n3. Show Reminder\n4. Delete Reminder\n");
-        printf("ENTER YOUR CHOICE: ");
-        scanf("%d", &choice);
+int main(void) {
+    for (;;) {
+        printf("\n=== Calendar & Reminders ===\n");
+        printf("1. Show calendar\n");
+        printf("2. Add note\n");
+        printf("3. View reminders for a month\n");   /* <- new option per issue #8 */
+        printf("4. Delete a note by date\n");
+        printf("5. Exit\n");
+
+        int choice = read_int("Enter your choice: ");
+
         switch (choice) {
-            case 1:
-                printf("Enter month (MM): ");
-                scanf("%i", &month);
-                printf("Enter year (YYYY): ");
-                scanf("%i", &year);
+            case 1: {
+                int year  = read_int("Enter year  (e.g., 2025): ");
+                int month = read_int("Enter month (1-12): ");
                 calendar_printer(year, month);
                 break;
+            }
             case 2:
                 AddNote();
                 break;
-            case 3:
-                printf("Enter month (MM): ");
-                scanf("%i", &mm);
-                printf("Enter year (YYYY): ");
-                scanf("%i", &yy);
+            case 3: {                                   /* <- calls existing filter */
+                int mm = read_int("Enter month (1-12): ");
+                int yy = read_int("Enter year  (e.g., 2025): ");
                 showNote(mm, yy);
                 break;
+            }
             case 4:
                 DeleteNote();
                 break;
-            case 0:
+            case 5:
+                printf("Goodbye!\n");
                 return 0;
             default:
-                printf("\nEnter Your Correct Choice.\n");
-                continue;
+                printf("Invalid choice! Please select 1-5.\n");
         }
     }
-    return 0;
 }

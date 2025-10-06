@@ -30,11 +30,19 @@ calendar_app/
 
 Contains declarations for calendar-related functions:
 - `void calendar_printer(int year, int month);`
-- `int leap(int year);`
-- `int jan_first_day(int year);`
-- `int month_first_day(int year, int month);`
+- `int is_leap_year(int year);`
+- `int days_in_month(int month, int year);`
+
 
 ### `include/notes.h`
+
+Contains declarations for notes-related functions and structure:
+- `struct Remainder { int dd, mm, yy; char note[50]; };`
+- `char checkNote(int dd, int mm, int yy);`
+- `void AddNote(void);`
+- `void showNote(int mm, int yy);`
+- `void DeleteNote(void);`
+
 
 Contains declarations for notes-related functions and structure:
 - `struct Remainder`

@@ -2,15 +2,13 @@
 #define NOTES_H
 
 struct Remainder {
-    int dd;
-    int mm;
-    int yy;
+    int dd, mm, yy;
     char note[50];
 };
 
 char checkNote(int dd, int mm, int yy);
-void AddNote();
+void AddNote(void);
 void showNote(int mm, int yy);
-void DeleteNote();
+void DeleteNote(void);
 
-#endif // NOTES_H
+#endif
