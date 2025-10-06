@@ -1,0 +1,20 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  build:
+    strategy:
+      matrix: { os: [ubuntu-latest, macos-latest] }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y check pkg-config
+          else
+            brew update
+            brew install check
+          fi
+      - name: Run tests
+        run: make test
