@@ -38,7 +38,7 @@ void AddNote(void) {
         flush_line();
         return;
     }
-    flush_line();  /* consume end-of-line after the date */
+    flush_line();
 
     printf("Enter the Note (max 49 chars): ");
     if (scanf(" %49[^\n]", r.note) != 1) {
@@ -47,7 +47,7 @@ void AddNote(void) {
         flush_line();
         return;
     }
-    flush_line();  /* consume the newline left in the buffer */
+    flush_line();
 
     if (fwrite(&r, sizeof r, 1, fp) == 1) {
         puts("Note saved successfully.");
@@ -103,8 +103,6 @@ void DeleteNote(void) {
         flush_line();
         return;
     }
-
-    // Loop through all notes and delete any that match the date
     while (fread(&r, sizeof r, 1, fp) == 1) {
         if (r.dd == d && r.mm == m && r.yy == y) {
             found = 1;
