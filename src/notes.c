@@ -3,10 +3,9 @@
 #include <string.h>
 #include "notes.h"
 
-static void trim_newline(char *s) {
-    if (!s) return;
-    size_t n = strlen(s);
-    if (n && s[n - 1] == '\n') s[n - 1] = '\0';
+static void flush_line(void) {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF) {}
 }
 
 char checkNote(int dd, int mm, int yy) {
@@ -20,14 +19,13 @@ char checkNote(int dd, int mm, int yy) {
             return '*';
         }
     }
-
     fclose(fp);
     return ' ';
 }
 
 void AddNote(void) {
     struct Remainder r;
-    FILE *fp = fopen("note.dat", "ab+");
+    FILE *fp = fopen("note.dat", "ab");
     if (!fp) {
         puts("Failed to open notes file.");
         return;
@@ -37,21 +35,20 @@ void AddNote(void) {
     if (scanf("%d %d %d", &r.dd, &r.mm, &r.yy) != 3) {
         puts("Invalid date.");
         fclose(fp);
-        // clear leftover line
-        int c; while ((c = getchar()) != '\n' && c != EOF) {}
+        flush_line();
         return;
     }
+    flush_line();  /* consume end-of-line after the date */
 
-    // consume end of line before reading text
-    int c; while ((c = getchar()) != '\n' && c != EOF) {}
-
-    printf("Enter the Note (max %zu chars): ", sizeof r.note - 1);
-    if (!fgets(r.note, sizeof r.note, stdin)) {
+    printf("Enter the Note (max 49 chars): ");
+    /* Read up to 49 non-newline characters, skip leading newline/space */
+    if (scanf(" %49[^\n]", r.note) != 1) {
         puts("Failed to read note.");
         fclose(fp);
+        flush_line();
         return;
     }
-    trim_newline(r.note);
+    flush_line();  /* consume the newline left in the buffer */
 
     if (fwrite(&r, sizeof r, 1, fp) == 1) {
         puts("Note saved successfully.");
@@ -77,7 +74,6 @@ void showNote(int mm, int yy) {
         }
     }
     if (!found) puts("\nThis month contains no note.");
-
     fclose(fp);
 }
 
@@ -104,14 +100,13 @@ void DeleteNote(void) {
         fclose(fp);
         fclose(ft);
         remove("temp.dat");
-        // clear leftover line
-        int c; while ((c = getchar()) != '\n' && c != EOF) {}
+        flush_line();
         return;
     }
 
     while (fread(&r, sizeof r, 1, fp) == 1) {
         if (!found && r.dd == d && r.mm == m && r.yy == y) {
-            found = 1;              // skip first match (delete it)
+            found = 1;              /* delete first match */
             continue;
         }
         fwrite(&r, sizeof r, 1, ft);
