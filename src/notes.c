@@ -38,7 +38,7 @@ void AddNote(void) {
         flush_line();
         return;
     }
-    flush_line();
+    flush_line();  /* consume end-of-line after the date */
 
     printf("Enter the Note (max 49 chars): ");
     if (scanf(" %49[^\n]", r.note) != 1) {
