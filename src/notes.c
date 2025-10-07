@@ -61,7 +61,13 @@ void AddNote(void) {
         flush_line();
         return;
     }
-    flush_line();  /* consume end-of-line after the date */
+    flush_line();
+
+    if (r.mm < 1 || r.mm > 12 || r.dd < 1 || r.dd > days_in_month(r.mm, r.yy)) {
+        puts("Invalid day or month for the given year.");
+        fclose(fp);
+        return;
+    }
 
     /* ---- NEW: validate the date before proceeding ---- */
     if (!is_valid_date(r.dd, r.mm, r.yy)) {
@@ -120,7 +126,8 @@ void DeleteNote(void) {
         return;
     }
 
-    int d, m, y, found = 0;
+    int d, m, y;
+    int found = 0;
     struct Remainder r;
 
     printf("Enter date of note to delete (DD MM YYYY): ");
@@ -144,9 +151,13 @@ void DeleteNote(void) {
     }
 
     while (fread(&r, sizeof r, 1, fp) == 1) {
-        if (!found && r.dd == d && r.mm == m && r.yy == y) {
-            found = 1;            /* delete first match */
-            continue;
+while (fread(&r, sizeof r, 1, fp) == 1) {
+    if (r.dd == d && r.mm == m && r.yy == y) {
+        found = 1;      /* delete this record */
+        continue;       /* skip write -> effectively removes it */
+    }
+    fwrite(&r, sizeof r, 1, ft);
+}
         }
         fwrite(&r, sizeof r, 1, ft);
     }
@@ -165,5 +176,5 @@ void DeleteNote(void) {
         return;
     }
 
-    printf("Note for %02d/%02d/%d deleted successfully.\n", d, m, y);
+    printf("All notes for %02d/%02d/%d deleted successfully.\n", d, m, y);
 }

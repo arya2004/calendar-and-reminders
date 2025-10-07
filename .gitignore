@@ -56,3 +56,7 @@ dkms.conf
 
 # Executables
 calendar_app
+build/tests/run_tests
+
+# Build output
+build/

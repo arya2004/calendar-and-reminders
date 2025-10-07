@@ -1,0 +1,80 @@
+CC ?= cc
+CFLAGS ?= -O2 -Wall -Wextra -std=c11
+INCLUDES := -Iinclude
+
+PKG_CONFIG ?= pkg-config
+CHECK_CFLAGS := $(shell $(PKG_CONFIG) --cflags check 2>/dev/null)
+CHECK_LIBS   := $(shell $(PKG_CONFIG) --libs   check 2>/dev/null)
+
+BREW_CHECK_PREFIX := $(shell brew --prefix check 2>/dev/null)
+
+ifeq ($(strip $(CHECK_CFLAGS)),)
+  ifneq ($(strip $(BREW_CHECK_PREFIX)),)
+    CHECK_CFLAGS := -I$(BREW_CHECK_PREFIX)/include
+  endif
+endif
+
+ifeq ($(strip $(CHECK_LIBS)),)
+  ifneq ($(strip $(BREW_CHECK_PREFIX)),)
+    CHECK_LIBS := -L$(BREW_CHECK_PREFIX)/lib -lcheck -lm
+  else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+      CHECK_LIBS := -lcheck -lm -lpthread -lrt -lsubunit
+    else
+      CHECK_LIBS := -lcheck -lm
+    endif
+  endif
+endif
+
+# App sources (exclude app main from tests)
+APP_MAIN := src/main.c
+APP_SRC  := $(filter-out $(APP_MAIN), $(wildcard src/*.c))
+
+TEST_BIN := build/tests/run_tests
+TEST_SRC := $(wildcard tests/*.c)
+
+$(TEST_BIN): $(TEST_SRC) $(APP_SRC)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CHECK_CFLAGS) $(INCLUDES) $^ -o $@ $(CHECK_LIBS)
+
+.PHONY: test
+test: $(TEST_BIN)
+	./$(TEST_BIN) -q
+
+.PHONY: clean
+clean:
+	rm -rf build
+
+# ====== Check (unit test) settings ======
+PKGCONF      ?= pkg-config
+CK_CFLAGS    := $(shell $(PKGCONF) --cflags check 2>/dev/null)
+CK_LIBS      := $(shell $(PKGCONF) --libs check 2>/dev/null)
+
+# Fallback paths (macOS Homebrew) when pkg-config isn’t found
+ifeq ($(strip $(CK_LIBS)),)
+  CK_CFLAGS := -I/opt/homebrew/include
+  CK_LIBS   := -L/opt/homebrew/lib -lcheck
+endif
+
+CFLAGS ?= -O2 -Wall -Wextra -std=c11
+
+TEST_BIN := build/tests/run_tests
+TEST_SRCS := tests/test_calendar.c tests/test_runner.c
+# Add smoke file if created:
+# TEST_SRCS += tests/test_smoke.c
+
+# Try to include headers from typical project layout
+INCLUDES := -Iinclude
+
+.PHONY: test clean
+
+test: $(TEST_BIN)
+	./$(TEST_BIN)
+
+$(TEST_BIN): $(TEST_SRCS) $(wildcard src/*.c)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) $(CK_CFLAGS) $^ -o $@ $(CK_LIBS)
+
+clean:
+	rm -rf build
