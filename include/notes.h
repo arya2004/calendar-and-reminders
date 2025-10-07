@@ -11,4 +11,8 @@ void AddNote(void);
 void showNote(int mm, int yy);
 void DeleteNote(void);
 
+/* Date helpers */
+int days_in_month(int mm, int yy);
+int is_valid_date(int dd, int mm, int yy);
+
 #endif

@@ -8,6 +8,29 @@ static void flush_line(void) {
     while ((ch = getchar()) != '\n' && ch != EOF) {}
 }
 
+/* ---------- Date validation (Gregorian) ---------- */
+
+static int is_leap(int yy) {
+    return (yy % 4 == 0 && yy % 100 != 0) || (yy % 400 == 0);
+}
+
+int days_in_month(int mm, int yy) {
+    static const int dm[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    if (mm < 1 || mm > 12) return 0;
+    if (mm == 2) return dm[2] + (is_leap(yy) ? 1 : 0);
+    return dm[mm];
+}
+
+int is_valid_date(int dd, int mm, int yy) {
+    if (yy < 1) return 0;                         /* reject year 0/negatives */
+    int dim = days_in_month(mm, yy);
+    if (dim == 0) return 0;                       /* invalid month */
+    if (dd < 1 || dd > dim) return 0;             /* invalid day for that month/year */
+    return 1;
+}
+
+/* ---------- Existing features ---------- */
+
 char checkNote(int dd, int mm, int yy) {
     struct Remainder r;
     FILE *fp = fopen("note.dat", "rb");
@@ -33,7 +56,7 @@ void AddNote(void) {
 
     printf("Enter the date (DD MM YYYY): ");
     if (scanf("%d %d %d", &r.dd, &r.mm, &r.yy) != 3) {
-        puts("Invalid date.");
+        puts("Invalid date input.");
         fclose(fp);
         flush_line();
         return;
@@ -42,6 +65,13 @@ void AddNote(void) {
 
     if (r.mm < 1 || r.mm > 12 || r.dd < 1 || r.dd > days_in_month(r.mm, r.yy)) {
         puts("Invalid day or month for the given year.");
+        fclose(fp);
+        return;
+    }
+
+    /* ---- NEW: validate the date before proceeding ---- */
+    if (!is_valid_date(r.dd, r.mm, r.yy)) {
+        puts("Invalid day for the given month and year.");
         fclose(fp);
         return;
     }
@@ -109,11 +139,25 @@ void DeleteNote(void) {
         flush_line();
         return;
     }
+    flush_line();
+
+    /* ---- NEW: validate date before searching ---- */
+    if (!is_valid_date(d, m, y)) {
+        puts("Invalid day for the given month and year.");
+        fclose(fp);
+        fclose(ft);
+        remove("temp.dat");
+        return;
+    }
 
     while (fread(&r, sizeof r, 1, fp) == 1) {
-        if (r.dd == d && r.mm == m && r.yy == y) {
-            found = 1;
-            continue;  
+while (fread(&r, sizeof r, 1, fp) == 1) {
+    if (r.dd == d && r.mm == m && r.yy == y) {
+        found = 1;      /* delete this record */
+        continue;       /* skip write -> effectively removes it */
+    }
+    fwrite(&r, sizeof r, 1, ft);
+}
         }
         fwrite(&r, sizeof r, 1, ft);
     }
